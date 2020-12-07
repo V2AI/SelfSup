@@ -28,3 +28,6 @@ _ext
 
 # Pycharm editor settings
 .idea
+
+# soft link
+**/log
