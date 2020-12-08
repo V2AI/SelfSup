@@ -32,7 +32,13 @@ pods_train --num-gpus 8 MODEL.WEIGHTS /path/to/your/weights.pkl
 
 ## Model Zoo
 
-### ImageNet
+### Supervised - ImageNet
+
+| Methods | Epochs | ImageNet Top 1 Acc |
+| ------- | ------ | ------------------ |
+| Res50   | 100    | 76.4               |
+
+### Unsupervised - ImageNet
 
 | Methods | Epochs | ImageNet Top 1 Acc |
 | ------- | ------ | ------------------ |
@@ -45,7 +51,7 @@ pods_train --num-gpus 8 MODEL.WEIGHTS /path/to/your/weights.pkl
 | SimSiam | 200   | Comming Soon.      |
 | SwAV    | 200   | Comming Soon.      |
 
-### 3D
+### Unsupervised - 3D Datasets
 
 | Methods       | Steps | Downstream task |
 | ------------- | ----- | --------------- |
