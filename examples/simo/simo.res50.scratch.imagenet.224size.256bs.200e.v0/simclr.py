@@ -3,12 +3,12 @@ import torch
 import torch.nn as nn
 
 from torch.nn import functional as F
-from torch import distributed as dist
 
 from cvpods.layers import ShapeSpec
 from cvpods.structures import ImageList
 from cvpods.layers.batch_norm import NaiveSyncBatchNorm1d
-from cvpods.utils import comm
+
+from nt_xent2 import NT_Xent
 
 
 def accuracy(output, target, topk=(1,)):
@@ -28,7 +28,7 @@ def accuracy(output, target, topk=(1,)):
         return res
 
 
-class SiMo(nn.Module):
+class SimCLR(nn.Module):
     """
     Build a MoCo model with: a query encoder, a key encoder, and a queue
     https://arxiv.org/abs/1911.05722
@@ -40,7 +40,7 @@ class SiMo(nn.Module):
         m: moco momentum of updating key encoder (default: 0.999)
         T: softmax temperature (default: 0.07)
         """
-        super(SiMo, self).__init__()
+        super(SimCLR, self).__init__()
 
         self.device = torch.device(cfg.MODEL.DEVICE)
 
@@ -49,9 +49,6 @@ class SiMo(nn.Module):
         self.mlp = cfg.MODEL.CLR.MLP
         self.norm = cfg.MODEL.CLR.NORM
         self.m = cfg.MODEL.CLR.MOMENTUM
-
-        alpha = cfg.MODEL.CLR.ALPHA
-        K = cfg.MODEL.CLR.K
 
         # create the encoders
         # num_classes is the output fc dimension
@@ -112,7 +109,8 @@ class SiMo(nn.Module):
             param_k.data.copy_(param_q.data)  # initialize
             param_k.requires_grad = False  # not update by gradient
 
-        self.loss_evaluator = NT_Xent(cfg.SOLVER.IMS_PER_DEVICE, self.T, alpha, K, self.device)
+        # self.loss_evaluator = NTXentLoss(self.device, cfg.SOLVER.IMS_PER_DEVICE, self.T, True)
+        self.loss_evaluator = NT_Xent(cfg.SOLVER.IMS_PER_DEVICE, self.T, self.device)
 
         pixel_mean = torch.Tensor(cfg.MODEL.PIXEL_MEAN).to(self.device).view(3, 1, 1)
         pixel_std = torch.Tensor(cfg.MODEL.PIXEL_STD).to(self.device).view(3, 1, 1)
@@ -165,91 +163,3 @@ class SiMo(nn.Module):
         images = ImageList.from_tensors(images, self.size_divisibility)
 
         return images
-
-
-class NT_Xent(nn.Module):
-    def __init__(self, device_size, temperature, alpha, K, device):
-        super(NT_Xent, self).__init__()
-        self.device_size = device_size
-        self.temperature = temperature
-        self.alpha = alpha
-        self.K = K
-        self.device = device
-
-        self.similarity_f = nn.CosineSimilarity(dim=2)
-
-        pos_mask_i, neg_mask_i = \
-            self.mask_correlated_samples(comm.get_world_size(), self.device_size)
-        self.pos_mask_i = pos_mask_i.to(self.device)
-        self.neg_mask_i = neg_mask_i.to(self.device)
-
-    def mask_correlated_samples(self, world_size, device_size):
-        batch_size = world_size * device_size
-
-        neg_mask_i = torch.ones((batch_size, batch_size), dtype=bool)
-        for rank in range(world_size):
-            for idx in range(device_size):
-                neg_mask_i[device_size * rank + idx, device_size * rank + idx] = 0  # i
-        pos_mask_i = neg_mask_i.clone()
-
-        return ~pos_mask_i, neg_mask_i
-
-    def forward(self, z_i, z_j):
-        device_size = z_i.shape[0]
-        batch_size = device_size * comm.get_world_size()
-        local_rank = comm.get_rank()
-
-        neg_perm = torch.randperm(batch_size - 1)[: self.K]
-
-        if comm.get_world_size() > 1:
-            group = comm._get_global_gloo_group()
-
-            zi_large = [torch.zeros_like(z_i) for _ in range(comm.get_world_size())]
-            zj_large = [torch.zeros_like(z_j) for _ in range(comm.get_world_size())]
-
-            dist.all_gather(zi_large, z_i, group=group)
-            dist.all_gather(zj_large, z_j, group=group)
-
-            choices = [
-                torch.zeros_like(neg_perm, dtype=torch.int64) for _ in range(comm.get_world_size())]
-            dist.all_gather(choices, neg_perm, group=group)
-            neg_perm = choices[0]
-
-        else:
-            zi_large = [z_i]
-            zj_large = [z_j]
-
-        zi_large[local_rank] = z_i
-        zj_large[local_rank] = z_j
-
-        z_large = []
-        for idx in range(comm.get_world_size()):
-            if idx == local_rank:
-                # current device
-                z_large.append(z_j)
-            else:
-                z_large.append(zj_large[idx])
-
-        zi_large = torch.cat(zi_large)
-        z_large = torch.cat(z_large)
-
-        sim_i_large = self.similarity_f(
-            zi_large.unsqueeze(1), z_large.unsqueeze(0)) / self.temperature
-
-        positive_samples_i = sim_i_large[self.pos_mask_i].reshape(batch_size, 1)
-        negative_samples_i = sim_i_large[self.neg_mask_i].reshape(batch_size, -1)[:, neg_perm]
-
-        labels_i = torch.zeros(batch_size).to(self.device).long()
-        logits_i = torch.cat((positive_samples_i, negative_samples_i), dim=1)
-
-        # EqCo
-        loss_i = torch.log(
-            torch.exp(positive_samples_i) +
-            # self.alpha / negative_samples_i.shape[1] *  # uncomment this when negatives != bs
-            torch.exp(negative_samples_i).sum(dim=-1, keepdim=True)
-        ) - positive_samples_i
-        loss_i = loss_i.sum() / device_size
-
-        acc1, acc5 = accuracy(logits_i, labels_i, topk=(1, 5))
-
-        return loss_i, acc1, acc5

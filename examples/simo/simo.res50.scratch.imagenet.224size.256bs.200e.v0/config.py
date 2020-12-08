@@ -3,6 +3,8 @@ import torchvision.transforms as transforms
 
 from cvpods.configs.base_classification_config import BaseClassificationConfig
 
+import loader
+
 _config_dict = dict(
     MODEL=dict(
         WEIGHTS="",
@@ -16,8 +18,6 @@ _config_dict = dict(
             ZERO_INIT_RESIDUAL=True,  # default false, use true for all subsequent models
         ),
         CLR=dict(
-            ALPHA=256,
-            K=256,
             DIM=128,
             TAU=0.2,
             MLP=True,
@@ -29,7 +29,7 @@ _config_dict = dict(
         TRAIN=("imagenet_nori_train", ),
         TEST=("imagenet_nori_val", ),
     ),
-    DATALOADER=dict(NUM_WORKERS=6, ),
+    DATALOADER=dict(NUM_WORKERS=8, ),
     SOLVER=dict(
         LR_SCHEDULER=dict(
             NAME="WarmupCosineLR",
@@ -58,8 +58,8 @@ _config_dict = dict(
                 ("RepeatList", dict(transforms=[
                     ("Torch_RRC", transforms.RandomResizedCrop(224, scale=(0.2, 1.))),
                     ("Torch_RACJ", transforms.RandomApply([
-                        transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)], p=0.8)),
-                    ("GaussianBlur", dict(sigma=[.1, 2.], p=0.5)),
+                                transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)], p=0.8)),
+                    ("Torch_RAGB", transforms.RandomApply([loader.GaussianBlur([.1, 2.])], p=0.5)),
                     ("Torch_RG", transforms.RandomGrayscale(p=0.2)),
                     ("Torch_RHF", transforms.RandomHorizontalFlip()),
                 ], repeat_times=2)),
