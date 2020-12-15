@@ -35,6 +35,7 @@ _config_dict = dict(
             NAME="WarmupCosineLR",
             MAX_EPOCH=200,
             WARMUP_ITERS=10,
+            EPOCH_WISE=False,  # update lr in epoch / step
         ),
         OPTIMIZER=dict(
             NAME="SGD",

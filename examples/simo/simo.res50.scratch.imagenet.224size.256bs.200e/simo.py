@@ -220,21 +220,12 @@ class NT_Xent(nn.Module):
             zj_large = [z_j]
 
         zi_large[local_rank] = z_i
-        zj_large[local_rank] = z_j
-
-        z_large = []
-        for idx in range(comm.get_world_size()):
-            if idx == local_rank:
-                # current device
-                z_large.append(z_j)
-            else:
-                z_large.append(zj_large[idx])
 
         zi_large = torch.cat(zi_large)
-        z_large = torch.cat(z_large)
+        zj_large = torch.cat(zj_large)
 
         sim_i_large = self.similarity_f(
-            zi_large.unsqueeze(1), z_large.unsqueeze(0)) / self.temperature
+            zi_large.unsqueeze(1), zj_large.unsqueeze(0)) / self.temperature
 
         positive_samples_i = sim_i_large[self.pos_mask_i].reshape(batch_size, 1)
         negative_samples_i = sim_i_large[self.neg_mask_i].reshape(batch_size, -1)[:, neg_perm]

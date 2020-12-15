@@ -1,7 +1,7 @@
-# simclr.moco_setting.lin_clsv2  
+# simo.res50.scratch.imagenet.224size.256bs.200e.lin_clsv2  
 
 ## Evaluation results for classification:  
 
 |  Top_1 Acc  |  Top_5 Acc  |  
 |:-----------:|:-----------:|  
-|   67.286    |   87.992    |
+|   68.036    |   88.518    |

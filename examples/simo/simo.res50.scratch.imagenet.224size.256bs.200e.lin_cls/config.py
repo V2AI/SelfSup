@@ -5,7 +5,7 @@ from cvpods.configs.base_classification_config import BaseClassificationConfig
 
 _config_dict = dict(
     MODEL=dict(
-        WEIGHTS="../simclr.moco_setting/log/model_final_pretrain_weight.pkl",
+        WEIGHTS="../simo.res50.scratch.imagenet.224size.256bs.200e/log/model_final_pretrain_weight.pkl",
         BACKBONE=dict(FREEZE_AT=0, ),  # freeze all parameters manually in imagenet.py
         RESNETS=dict(
             DEPTH=50,
