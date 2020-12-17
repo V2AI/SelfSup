@@ -40,16 +40,16 @@ pods_train --num-gpus 8 MODEL.WEIGHTS /path/to/your/weights.pkl
 
 ### Unsupervised - ImageNet
 
-| Methods | Epochs | ImageNet Top 1 Acc |
-| ------- | ------ | ------------------ |
-| MoCo    | 200    | 60.5               |
-| MoCov2  | 200    | 67.6               |
-| SimCLR  | 200    | 63.2               |
-| SimCLR* | 200    | 67.3               |
-| SiMo    | 200    | 68.1               |
-| BYOL    | 200   | Comming Soon.      |
-| SimSiam | 200   | Comming Soon.      |
-| SwAV    | 200   | Comming Soon.      |
+| Methods | Epochs | Batch Size | ImageNet Top 1 Acc |
+| ------- | ------ | ---------- | ------------------ |
+| MoCo    | 200    |     256    | 60.5               |
+| MoCov2  | 200    |     256    | 67.6               |
+| SimCLR  | 200    |     256    | 63.2               |
+| SimCLR* | 200    |     256    | 67.3               |
+| SiMo    | 200    |     256    | 68.1               |
+| BYOL    | 200    |     256    | Comming Soon.      |
+| SimSiam | 200    |     256    | Comming Soon.      |
+| SwAV    | 200    |     256    | Comming Soon.      |
 
 ### Unsupervised - 3D Datasets
 
