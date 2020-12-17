@@ -42,11 +42,11 @@ pods_train --num-gpus 8 MODEL.WEIGHTS /path/to/your/weights.pkl
 
 | Methods | Epochs | Batch Size | ImageNet Top 1 Acc |
 | ------- | ------ | ---------- | ------------------ |
-| MoCo    | 200    |     256    | 60.5               |
-| MoCov2  | 200    |     256    | 67.6               |
-| SimCLR  | 200    |     256    | 63.2               |
-| SimCLR* | 200    |     256    | 67.3               |
-| SiMo    | 200    |     256    | 68.1               |
+| MoCo    | 200    |     256    | 60.5 (paper: 60.5) |
+| MoCov2  | 200    |     256    | 67.6 (paper: 67.5) |
+| SimCLR  | 200    |     256    | 63.2 (paper: 61.9) |
+| **SimCLR*** | 200    |     256    | 67.3 (**Ours**)    |
+| **SiMo**    | 200    |     256    | 68.1 (**ours**)    |
 | BYOL    | 200    |     256    | Comming Soon.      |
 | SimSiam | 200    |     256    | Comming Soon.      |
 | SwAV    | 200    |     256    | Comming Soon.      |
