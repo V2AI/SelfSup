@@ -46,7 +46,7 @@ pods_train --num-gpus 8 MODEL.WEIGHTS /path/to/your/weights.pkl
 | MoCov2  | 200    |     256    | 67.6 (paper: 67.5) |
 | SimCLR  | 200    |     256    | 63.2 (paper: 61.9) |
 | **SimCLR*** | 200    |     256    | 67.3 (**Ours**)    |
-| **SiMo**    | 200    |     256    | 68.1 (**ours**)    |
+| **SiMo**    | 200    |     256    | 68.1 (**Ours**)    |
 | BYOL    | 200    |     256    | Comming Soon.      |
 | SimSiam | 200    |     256    | Comming Soon.      |
 | SwAV    | 200    |     256    | Comming Soon.      |
