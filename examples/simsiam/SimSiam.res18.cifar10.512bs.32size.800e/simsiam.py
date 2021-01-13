@@ -1,0 +1,108 @@
+import math
+import torch
+import torch.nn as nn
+
+from torch.nn import functional as F
+
+from cvpods.layers import ShapeSpec, Conv2d, get_norm
+from cvpods.structures import ImageList
+from cvpods.layers.batch_norm import NaiveSyncBatchNorm1d
+
+
+class SimSiam(nn.Module):
+    def __init__(self, cfg):
+        super(SimSiam, self).__init__()
+
+        self.device = torch.device(cfg.MODEL.DEVICE)
+
+        self.proj_dim = cfg.MODEL.BYOL.PROJ_DIM
+        self.pred_dim = cfg.MODEL.BYOL.PRED_DIM
+        self.out_dim = cfg.MODEL.BYOL.OUT_DIM
+
+        self.total_steps = cfg.SOLVER.LR_SCHEDULER.MAX_ITER * cfg.SOLVER.BATCH_SUBDIVISIONS
+
+        # create the encoders
+        # num_classes is the output fc dimension
+        cfg.MODEL.RESNETS.NUM_CLASSES = self.out_dim
+
+        self.encoder = cfg.build_backbone(
+            cfg, input_shape=ShapeSpec(channels=len(cfg.MODEL.PIXEL_MEAN)))
+        self.encoder.stem = nn.Sequential(
+            Conv2d(
+                3,
+                64,
+                kernel_size=3,
+                stride=1,
+                padding=1,
+                bias=False,
+                norm=get_norm(cfg.MODEL.RESNETS.NORM, 64)
+            ),
+            nn.ReLU(),
+        )
+
+        self.size_divisibility = self.encoder.size_divisibility
+
+        dim_mlp = self.encoder.linear.weight.shape[1]
+
+        # Projection Head
+        self.encoder.linear = nn.Sequential(
+            nn.Linear(dim_mlp, self.proj_dim),
+            nn.SyncBatchNorm(self.proj_dim),
+            nn.ReLU(),
+            nn.Linear(self.proj_dim, self.proj_dim),
+            nn.SyncBatchNorm(self.proj_dim),
+        )
+
+        # Predictor
+        self.predictor = nn.Sequential(
+            nn.Linear(self.proj_dim, self.pred_dim),
+            nn.SyncBatchNorm(self.pred_dim),
+            nn.ReLU(),
+            nn.Linear(self.pred_dim, self.out_dim),
+        )
+
+        pixel_mean = torch.Tensor(cfg.MODEL.PIXEL_MEAN).to(self.device).view(3, 1, 1)
+        pixel_std = torch.Tensor(cfg.MODEL.PIXEL_STD).to(self.device).view(3, 1, 1)
+        self.normalizer = lambda x: (x / 255.0 - pixel_mean) / pixel_std
+
+        self.to(self.device)
+
+    def D(self, p, z, version='simplified'):  # negative cosine similarity
+        if version == 'original':
+            z = z.detach()  # stop gradient
+            p = F.normalize(p, dim=1)  # l2-normalize
+            z = F.normalize(z, dim=1)  # l2-normalize
+            return -(p * z).sum(dim=1).mean()
+        elif version == 'simplified':  # same thing, much faster. Scroll down, speed test in __main__
+            return -F.cosine_similarity(p, z.detach(), dim=-1).mean()
+        else:
+            raise Exception
+
+    def forward(self, batched_inputs):
+        """
+        Input:
+            im_q: a batch of query images
+            im_k: a batch of key images
+        Output:
+            logits, targets
+        """
+        x1 = self.preprocess_image([bi["image"][0] for bi in batched_inputs]).tensor
+        x2 = self.preprocess_image([bi["image"][1] for bi in batched_inputs]).tensor
+
+        z1, z2 = self.encoder(x1)["linear"], self.encoder(x2)["linear"]
+        p1, p2 = self.predictor(z1), self.predictor(z2)
+
+        loss = self.D(p1, z2) / 2 + self.D(p2, z1) / 2
+
+        return dict(loss=loss)
+
+    def preprocess_image(self, batched_inputs):
+        """
+        Normalize, pad and batch the input images.
+        """
+        # images = [x["image"].float().to(self.device) for x in batched_inputs]
+        images = [x.float().to(self.device) for x in batched_inputs]
+        images = [self.normalizer(x) for x in images]
+        images = ImageList.from_tensors(images, self.size_divisibility)
+
+        return images
