@@ -62,7 +62,7 @@ _config_dict = dict(
         EVAL_PERIOD=10,
     ),
     OUTPUT_DIR=osp.join(
-        '/data/Outputs/model_logs/cvpods_playground',
+        '/data/Outputs/model_logs/cvpods_playground/SelfSup',
         osp.split(osp.realpath(__file__))[0].split("SelfSup/")[-1]
     )
 )
