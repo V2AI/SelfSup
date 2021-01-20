@@ -26,8 +26,8 @@ _config_dict = dict(
         ),
     ),
     DATASETS=dict(
-        TRAIN=("imagenet_nori_train", ),
-        TEST=("imagenet_nori_val", ),
+        TRAIN=("imagenet_train", ),
+        TEST=("imagenet_val", ),
     ),
     DATALOADER=dict(NUM_WORKERS=6, ),
     SOLVER=dict(
