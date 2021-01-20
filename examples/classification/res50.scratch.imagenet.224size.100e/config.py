@@ -41,28 +41,32 @@ _config_dict = dict(
     INPUT=dict(
         AUG=dict(
             TRAIN_PIPELINES=[
-                ("Torch_RRC", transforms.RandomResizedCrop(224)),
-                ("Torch_RHF", transforms.RandomHorizontalFlip()),
-                # ("Torch_CJ", transforms.ColorJitter(0.4, 0.4, 0.4, 0.0)),
-                # ("Lightning", dict(
-                #     alpha_std=0.1,
-                #     eig_val=np.array([[0.2175, 0.0188, 0.0045]]),
-                #     eig_vec=np.array([
-                #         [-0.5675, 0.7192, 0.4009],
-                #         [-0.5808, -0.0045, -0.8140],
-                #         [-0.5836, -0.6948, 0.4203]
-                #     ]),
-                # )),
+                ("Torch_Compose", transforms.Compose([
+                    transforms.RandomResizedCrop(224),
+                    transforms.RandomHorizontalFlip(),
+                    transforms.ToTensor(),
+                    transforms.Normalize(
+                        mean=[0.485, 0.456, 0.406],
+                        std=[0.229, 0.224, 0.225])
+                    ])
+                ),
             ],
             TEST_PIPELINES=[
-                ("Torch_R", transforms.Resize(256)),
-                ("Torch_CC", transforms.CenterCrop(224)),
-            ]
+                ("Torch_Compose", transforms.Compose([
+                    transforms.Resize(256),
+                    transforms.CenterCrop(224),
+                    transforms.ToTensor(),
+                    transforms.Normalize(
+                        mean=[0.485, 0.456, 0.406],
+                        std=[0.229, 0.224, 0.225])
+                    ])
+                ),
+            ],
         )
     ),
-    # TEST=dict(
-    #     EVAL_PERIOD=10,
-    # ),
+    TEST=dict(
+        EVAL_PERIOD=10,
+    ),
     OUTPUT_DIR=osp.join(
         '/data/Outputs/model_logs/cvpods_playground',
         osp.split(osp.realpath(__file__))[0].split("SelfSup/")[-1]),

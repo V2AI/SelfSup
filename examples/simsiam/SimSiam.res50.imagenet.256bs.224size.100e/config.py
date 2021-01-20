@@ -52,11 +52,13 @@ _config_dict = dict(
                         ("Torch_Compose", transforms.Compose([
                             transforms.RandomResizedCrop(224, scale=(0.2, 1.)),
                             transforms.RandomHorizontalFlip(),
+                        ])),
+                        ("GaussianBlur", dict(sigma=[.1, 2.], p=1.0)),
+                        ("Torch_Compose", transforms.Compose([
                             transforms.RandomApply([
                                         transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)], p=0.8),
                             transforms.RandomGrayscale(p=0.2),
                         ])),
-                        ("GaussianBlur", dict(sigma=[.1, 2.], p=1.0)),
                     ], repeat_times=2)),
                 ]
             )

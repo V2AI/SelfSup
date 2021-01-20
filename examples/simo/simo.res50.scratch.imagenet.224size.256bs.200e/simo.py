@@ -114,8 +114,8 @@ class SiMo(nn.Module):
 
         self.loss_evaluator = NT_Xent(cfg.SOLVER.IMS_PER_DEVICE, self.T, alpha, K, self.device)
 
-        pixel_mean = torch.Tensor(cfg.MODEL.PIXEL_MEAN).to(self.device).view(3, 1, 1)
-        pixel_std = torch.Tensor(cfg.MODEL.PIXEL_STD).to(self.device).view(3, 1, 1)
+        pixel_mean = torch.Tensor(cfg.MODEL.PIXEL_MEAN).to(self.device).view(1, 3, 1, 1)
+        pixel_std = torch.Tensor(cfg.MODEL.PIXEL_STD).to(self.device).view(1, 3, 1, 1)
         self.normalizer = lambda x: (x / 255.0 - pixel_mean) / pixel_std
 
         self.to(self.device)
@@ -137,8 +137,8 @@ class SiMo(nn.Module):
             logits, targets
         """
 
-        x_i = self.preprocess_image([bi["image"][0] for bi in batched_inputs]).tensor
-        x_j = self.preprocess_image([bi["image"][1] for bi in batched_inputs]).tensor
+        x_i = self.preprocess_image([bi["image"][0] for bi in batched_inputs])
+        x_j = self.preprocess_image([bi["image"][1] for bi in batched_inputs])
 
         z_i = self.network(x_i)["linear"]
         z_in = F.normalize(z_i, dim=1)
@@ -160,9 +160,8 @@ class SiMo(nn.Module):
         """
         Normalize, pad and batch the input images.
         """
-        images = [x.float().to(self.device) for x in batched_inputs]
-        images = [self.normalizer(x) for x in images]
-        images = ImageList.from_tensors(images, self.size_divisibility)
+        images = torch.stack([x for x in batched_inputs]).to(self.device)
+        images = self.normalizer(images)
 
         return images
 

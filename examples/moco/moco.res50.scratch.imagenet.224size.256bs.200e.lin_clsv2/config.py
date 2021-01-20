@@ -40,12 +40,16 @@ _config_dict = dict(
     INPUT=dict(
         AUG=dict(
             TRAIN_PIPELINES=[
-                ("Torch_RRC", transforms.RandomResizedCrop(224)),
-                ("Torch_RHF", transforms.RandomHorizontalFlip()),
+                ("Torch_Compose", transforms.Compose([
+                     transforms.RandomResizedCrop(224),
+                    transforms.RandomHorizontalFlip(),
+                ])),
             ],
             TEST_PIPELINES=[
-                ("Torch_R", transforms.Resize(256)),
-                ("Torch_CC", transforms.CenterCrop(224)),
+                ("Torch_Compose", transforms.Compose([
+                    transforms.Resize(256),
+                    transforms.CenterCrop(224),
+                ])),
             ]
         )
     ),

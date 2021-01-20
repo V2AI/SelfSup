@@ -54,12 +54,16 @@ _config_dict = dict(
         AUG=dict(
             TRAIN_PIPELINES=[
                 ("RepeatList", dict(transforms=[
-                    ("Torch_RRC", transforms.RandomResizedCrop(224, scale=(0.08, 1.))),
-                    ("Torch_RACJ", transforms.RandomApply([
-                        transforms.ColorJitter(0.8, 0.8, 0.8, 0.2)], p=0.8)),
+                    ("Torch_Compose", transforms.Compose([
+                        transforms.RandomResizedCrop(224, scale=(0.08, 1.)),
+                        transforms.RandomApply([
+                            transforms.ColorJitter(0.8, 0.8, 0.8, 0.2)], p=0.8),
+                        ])),
                     ("GaussianBlur", dict(sigma=[.1, 2.], p=0.5)),
-                    ("Torch_RG", transforms.RandomGrayscale(p=0.2)),
-                    ("Torch_RHF", transforms.RandomHorizontalFlip()),
+                    ("Torch_Compose", transforms.Compose([
+                        transforms.RandomGrayscale(p=0.2),
+                        transforms.RandomHorizontalFlip(),
+                        ]))
                 ], repeat_times=2)),
             ],
         )

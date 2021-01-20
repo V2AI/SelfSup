@@ -61,8 +61,8 @@ class SimSiam(nn.Module):
             nn.Linear(self.pred_dim, self.out_dim),
         )
 
-        pixel_mean = torch.Tensor(cfg.MODEL.PIXEL_MEAN).to(self.device).view(3, 1, 1)
-        pixel_std = torch.Tensor(cfg.MODEL.PIXEL_STD).to(self.device).view(3, 1, 1)
+        pixel_mean = torch.Tensor(cfg.MODEL.PIXEL_MEAN).to(self.device).view(1, 3, 1, 1)
+        pixel_std = torch.Tensor(cfg.MODEL.PIXEL_STD).to(self.device).view(1, 3, 1, 1)
         self.normalizer = lambda x: (x / 255.0 - pixel_mean) / pixel_std
 
         self.to(self.device)
@@ -86,8 +86,8 @@ class SimSiam(nn.Module):
         Output:
             logits, targets
         """
-        x1 = self.preprocess_image([bi["image"][0] for bi in batched_inputs]).tensor
-        x2 = self.preprocess_image([bi["image"][1] for bi in batched_inputs]).tensor
+        x1 = self.preprocess_image([bi["image"][0] for bi in batched_inputs])
+        x2 = self.preprocess_image([bi["image"][1] for bi in batched_inputs])
 
         z1, z2 = self.encoder(x1)["linear"], self.encoder(x2)["linear"]
         p1, p2 = self.predictor(z1), self.predictor(z2)
@@ -101,8 +101,7 @@ class SimSiam(nn.Module):
         Normalize, pad and batch the input images.
         """
         # images = [x["image"].float().to(self.device) for x in batched_inputs]
-        images = [x.float().to(self.device) for x in batched_inputs]
-        images = [self.normalizer(x) for x in images]
-        images = ImageList.from_tensors(images, self.size_divisibility)
+        images = torch.stack([x for x in batched_inputs]).to(self.device)
+        images = self.normalizer(images)
 
         return images

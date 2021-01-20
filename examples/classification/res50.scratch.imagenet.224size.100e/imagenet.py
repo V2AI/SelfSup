@@ -18,7 +18,7 @@ def accuracy(output, target, topk=(1,)):
 
         res = []
         for k in topk:
-            correct_k = correct[:k].view(-1).float().sum(0, keepdim=True)
+            correct_k = correct[:k].reshape(-1).float().sum(0, keepdim=True)
             res.append(correct_k.mul_(100.0 / batch_size))
         return res
 
@@ -31,21 +31,19 @@ class Classification(nn.Module):
 
         self.network = cfg.build_backbone(
             cfg, input_shape=ShapeSpec(channels=len(cfg.MODEL.PIXEL_MEAN)))
-
         self.loss_evaluator = nn.CrossEntropyLoss()
 
         pixel_mean = torch.Tensor(cfg.MODEL.PIXEL_MEAN).to(self.device).view(
-            3, 1, 1)
+            1, 3, 1, 1)
         pixel_std = torch.Tensor(cfg.MODEL.PIXEL_STD).to(self.device).view(
-            3, 1, 1)
+            1, 3, 1, 1)
         self.normalizer = lambda x: (x - pixel_mean) / pixel_std
 
         self.to(self.device)
 
     def forward(self, batched_inputs):
         images = self.preprocess_image(batched_inputs)
-
-        preds = self.network(images.tensor)["linear"]
+        preds = self.network(images)["linear"]
 
         if self.training:
             labels = torch.tensor([gi["category_id"] for gi in batched_inputs]).cuda()
@@ -64,7 +62,5 @@ class Classification(nn.Module):
         """
         Normalize, pad and batch the input images.
         """
-        images = [x["image"].float().to(self.device) for x in batched_inputs]
-        images = [self.normalizer(x.div(255)) for x in images]
-        images = ImageList.from_tensors(images, self.network.size_divisibility)
+        images = torch.stack([x["image"] for x in batched_inputs]).to(self.device)
         return images

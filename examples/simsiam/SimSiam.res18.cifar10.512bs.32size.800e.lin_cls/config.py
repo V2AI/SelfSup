@@ -51,11 +51,11 @@ _config_dict = dict(
     INPUT=dict(
         AUG=dict(
             TRAIN_PIPELINES=[
-                ("Torch_RRC", transforms.RandomResizedCrop(32)),
-                ("Torch_RHF", transforms.RandomHorizontalFlip()),
+                ("Torch_Compose", transforms.Compose([
+                    transforms.RandomResizedCrop(32),
+                    transforms.RandomHorizontalFlip(),
+                    ]))
             ],
-            TEST_PIPELINES=[
-            ]
         )
     ),
     TEST=dict(

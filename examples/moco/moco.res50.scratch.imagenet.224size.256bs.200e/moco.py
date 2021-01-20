@@ -76,9 +76,9 @@ class MoCo(nn.Module):
         self.loss_evaluator = nn.CrossEntropyLoss()
 
         pixel_mean = torch.Tensor(cfg.MODEL.PIXEL_MEAN).to(self.device).view(
-            3, 1, 1)
+            1, 3, 1, 1)
         pixel_std = torch.Tensor(cfg.MODEL.PIXEL_STD).to(self.device).view(
-            3, 1, 1)
+            1, 3, 1, 1)
         self.normalizer = lambda x: (x - pixel_mean) / pixel_std
 
         self.to(self.device)
@@ -163,8 +163,8 @@ class MoCo(nn.Module):
             logits, targets
         """
 
-        im_q = self.preprocess_image([bi["image"][0] for bi in batched_inputs]).tensor
-        im_k = self.preprocess_image([bi["image"][1] for bi in batched_inputs]).tensor
+        im_q = self.preprocess_image([bi["image"][0] for bi in batched_inputs])
+        im_k = self.preprocess_image([bi["image"][1] for bi in batched_inputs])
 
         # compute query features
         q = self.encoder_q(im_q)["linear"]  # queries: NxC
@@ -215,11 +215,8 @@ class MoCo(nn.Module):
         """
         Normalize, pad and batch the input images.
         """
-        # images = [x["image"].float().to(self.device) for x in batched_inputs]
-        images = [x.float().to(self.device) for x in batched_inputs]
-        images = [self.normalizer(x.div(255)) for x in images]
-        images = ImageList.from_tensors(images, self.size_divisibility)
-
+        images = torch.stack([x for x in batched_inputs]).to(self.device)
+        images = self.normalizer(images / 255.)
         return images
 
 
