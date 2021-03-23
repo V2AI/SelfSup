@@ -61,8 +61,8 @@ _config_dict = dict(
             ]
         )),
     OUTPUT_DIR=osp.join(
-        '/data/Outputs/model_logs/cvpods_playground/SelfSup',
-        osp.split(osp.realpath(__file__))[0].split("SelfSup/")[-1]))
+        '/data/Outputs/model_logs/cvpods_playground/self_supervised',
+        osp.split(osp.realpath(__file__))[0].split("self_supervised/")[-1]))
 
 
 class MoCoV2Config(BaseClassificationConfig):

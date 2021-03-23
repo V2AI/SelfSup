@@ -1,11 +1,12 @@
 from torch import nn
-import logging
 
 from cvpods.layers import ShapeSpec
 from cvpods.modeling.backbone import Backbone
 from cvpods.modeling.backbone import build_resnet_backbone
 
-from simsiam import SimSiam 
+from cvpods.utils import comm
+
+from barlow_twins import BarlowTwins
 
 
 def build_backbone(cfg, input_shape=None):
@@ -27,7 +28,8 @@ def build_model(cfg):
 
     cfg.build_backbone = build_backbone
 
-    model = SimSiam(cfg)
-    model = nn.SyncBatchNorm.convert_sync_batchnorm(model)
+    model = BarlowTwins(cfg)
+    if comm.get_world_size() > 1:
+        model = nn.SyncBatchNorm.convert_sync_batchnorm(model)
 
     return model

@@ -2,7 +2,7 @@ import torch
 
 from torch import nn
 
-from cvpods.layers import ShapeSpec
+import swav_resnet as resnet_models
 
 
 def accuracy(output, target, topk=(1,)):
@@ -17,7 +17,7 @@ def accuracy(output, target, topk=(1,)):
 
         res = []
         for k in topk:
-            correct_k = correct[:k].reshape(-1).float().sum(0, keepdim=True)
+            correct_k = correct[:k].view(-1).float().sum(0, keepdim=True)
             res.append(correct_k.mul_(100.0 / batch_size))
         return res
 
@@ -28,31 +28,37 @@ class Classification(nn.Module):
 
         self.device = torch.device(cfg.MODEL.DEVICE)
 
-        self.network = cfg.build_backbone(
-            cfg, input_shape=ShapeSpec(channels=len(cfg.MODEL.PIXEL_MEAN)))
+        # self.network = cfg.build_backbone(
+        #     cfg, input_shape=ShapeSpec(channels=len(cfg.MODEL.PIXEL_MEAN)))
+        self.network = resnet_models.__dict__[cfg.MODEL.RESNETS.ARCH](output_dim=0, eval_mode=True)
+
+        self.av_pool = nn.AdaptiveAvgPool2d((1, 1))
+        self.linear = nn.Linear(2048, cfg.MODEL.RESNETS.NUM_CLASSES)
+        # init the fc layer
+        self.linear.weight.data.normal_(mean=0.0, std=0.01)
+        self.linear.bias.data.zero_()
 
         self.freeze()
         self.network.eval()
 
-        # init the fc layer
-        self.network.linear.weight.data.normal_(mean=0.0, std=0.01)
-        self.network.linear.bias.data.zero_()
-
         self.loss_evaluator = nn.CrossEntropyLoss()
+
+        pixel_mean = torch.Tensor(cfg.MODEL.PIXEL_MEAN).to(self.device).view(3, 1, 1)
+        pixel_std = torch.Tensor(cfg.MODEL.PIXEL_STD).to(self.device).view(3, 1, 1)
+        self.normalizer = lambda x: (x / 255.0 - pixel_mean) / pixel_std
 
         self.to(self.device)
 
     def freeze(self):
         for name, param in self.network.named_parameters():
-            if name not in ['linear.weight', 'linear.bias']:
-                param.requires_grad = False
+            param.requires_grad = False
 
     def forward(self, batched_inputs):
         self.network.eval()
-        images = torch.stack([x["image"] for x in batched_inputs]).to(self.device)
 
-        outputs = self.network(images)
-        preds = outputs["linear"]
+        images = self.preprocess_image(batched_inputs)
+        outputs = torch.flatten(self.av_pool(self.network(images)), 1)
+        preds = self.linear(outputs) 
 
         if self.training:
             labels = torch.tensor([gi["category_id"] for gi in batched_inputs]).cuda()
@@ -66,3 +72,11 @@ class Classification(nn.Module):
             }
         else:
             return preds
+
+    def preprocess_image(self, batched_inputs):
+        """
+        Normalize, pad and batch the input images.
+        """
+        images = [x["image"].float().to(self.device) for x in batched_inputs]
+        images = torch.stack([self.normalizer(x) for x in images])
+        return images
