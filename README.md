@@ -50,6 +50,8 @@ pods_train --num-gpus 8 MODEL.WEIGHTS /path/to/your/weights.pkl
 | SimSiam | 100    |     256    | 65.0 (paper: 68.1) |     800e: 90.7 (paper: 91.8) |
 | SwAV    | 200    |     256    | Comming Soon.      |    -          |
 | BYOL    | 200    |     256    | Comming Soon.      |      -         |
+| BarlowTwins| 300    |     256    | Comming Soon.      |      -         |
+| SCRL    | 200    |     256    | Comming Soon.      |      -         |
 
 ### 3D Unsupervised Models 
 
