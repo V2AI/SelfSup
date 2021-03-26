@@ -6,7 +6,7 @@ from cvpods.configs.base_classification_config import BaseClassificationConfig
 _config_dict = dict(
 
     MODEL=dict(
-        WEIGHTS="../SimSiam.res50.imagenet.256bs.224size.100e/log/model_epoch_0020.pkl",
+        WEIGHTS="../SimSiam.res50.imagenet.256bs.224size.100e/log/model_final.pkl",
         BACKBONE=dict(FREEZE_AT=0, ),  # freeze all parameters manually in imagenet.py
         RESNETS=dict(
             DEPTH=50,
@@ -17,8 +17,8 @@ _config_dict = dict(
         ),
     ),
     DATASETS=dict(
-        TRAIN=("imagenet_train", ),
-        TEST=("imagenet_val", ),
+        TRAIN=("imagenet_nori_train", ),
+        TEST=("imagenet_nori_val", ),
     ),
     DATALOADER=dict(
         NUM_WORKERS=6,
@@ -31,14 +31,11 @@ _config_dict = dict(
             WARMUP_ITERS=0,
         ),
         OPTIMIZER=dict(
-            NAME="SGD",
-            LARC=dict(
-                ENABLED=True,
-                EPS=1e-8,
-                TRUST_COEF=1e-3,
-                CLIP=False,
-            ),
-            BASE_LR=0.02 * 4096 / 256,
+            NAME="LARS_SGD",
+            EPS=1e-8,
+            TRUST_COEF=1e-3,
+            CLIP=False,
+            BASE_LR=0.1 * 4096 / 256,
             MOMENTUM=0.9,
             WEIGHT_DECAY=0.0,
         ),
@@ -75,8 +72,8 @@ _config_dict = dict(
         EVAL_PERIOD=10,
     ),
     OUTPUT_DIR=osp.join(
-        '/data/Outputs/model_logs/cvpods_playground/self_supervised',
-        osp.split(osp.realpath(__file__))[0].split("self_supervised/")[-1]
+        '/data/Outputs/model_logs/cvpods_playground/SelfSup',
+        osp.split(osp.realpath(__file__))[0].split("SelfSup/")[-1]
     )
 )
 

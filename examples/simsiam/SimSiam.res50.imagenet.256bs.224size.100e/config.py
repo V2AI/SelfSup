@@ -38,7 +38,6 @@ _config_dict = dict(
             BASE_LR=0.05,
             MOMENTUM=0.9,
             WEIGHT_DECAY=1e-4,
-            WD_EXCLUDE_BN_BIAS=False,
         ),
         CHECKPOINT_PERIOD=10,
         IMS_PER_BATCH=256,
