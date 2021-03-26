@@ -60,4 +60,22 @@ pods_train --num-gpus 8 MODEL.WEIGHTS /path/to/your/weights.pkl
 | PointContrast | -     | Comming Soon.   |
 
 
+## Citation
 
+SelfSup is a part of [cvpods](https://github.com/Megvii-BaseDetection/cvpods), so if you find this repo useful in your research, or if you want to refer the implementations in this repo, please consider cite:
+
+```BibTeX
+
+@article{zhu2020eqco,
+  title={EqCo: Equivalent Rules for Self-supervised Contrastive Learning},
+  author={Zhu, Benjin and Huang, Junqiang and Li, Zeming and Zhang, Xiangyu and Sun, Jian},
+  journal={arXiv preprint arXiv:2010.01929},
+  year={2020}
+}
+
+@misc{zhu2020cvpods,
+  title={cvpods: All-in-one Toolbox for Computer Vision Research},
+  author={Zhu*, Benjin and Wang*, Feng and Wang, Jianfeng and Yang, Siwei and Chen, Jianhu and Li, Zeming},
+  year={2020}
+}
+```
