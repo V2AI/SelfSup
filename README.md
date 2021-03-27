@@ -48,7 +48,7 @@ pods_train --num-gpus 8 MODEL.WEIGHTS /path/to/your/weights.pkl
 | **SimCLR*** | 200    |     256    | 67.3 (**Ours**)|      -         |
 | **SiMo**    | 200    |     256    | 68.1 (**Ours**)|      -         |
 | SimSiam | 100    |     256    | 67.6 (paper: 67.7) |90.7 (paper: 91.8)|
-| SwAV    | 200    |     256    | 73.1 (paper 72.7)  |    -           |
+| SwAV    | 200    |     256    | 72.7 (paper 72.7)  |    -           |
 | BYOL    | 200    |     256    | Comming Soon.      |      -         |
 | BarlowTwins| 300 |     256    | Comming Soon.      |      -         |
 | SCRL    | 200    |     256    | Comming Soon.      |      -         |
