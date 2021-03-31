@@ -32,30 +32,47 @@ pods_train --num-gpus 8 MODEL.WEIGHTS /path/to/your/weights.pkl
 
 ## Model Zoo
 
-### Supervised Models 
+### Supervised Classification 
 
-| Methods | Epochs | ImageNet Top 1 |
+#### ImageNet
+| Methods | Training Schedule | Top 1  Acc |
 | ------- | ------ | ------------------ |
-| Res50   | 100    | 76.4               |
+| Res50   | 100e    | 76.4               |
 
-### Unsupervised Models 
+#### CIFAR 10
+| Methods | Training Schedule | Top 1  Acc |
+| ------- | ------ | ------------------ |
+| Res50   | 200e    | 95.4              |
 
-| Methods | Epochs | Batch Size | ImageNet Top 1 |  CIFAR10 Top 1 |
-| ------- | ------ | ---------- | ------------------ | -------------- |
-| MoCo    | 200    |     256    | 60.5 (paper: 60.5) |      -         |
-| MoCov2  | 200    |     256    | 67.6 (paper: 67.5) |      -         |
-| SimCLR  | 200    |     256    | 63.2 (paper: 61.9) |      -         |
-| **SimCLR*** | 200    |     256    | 67.3 (**Ours**)|      -         |
-| **SiMo**    | 200    |     256    | 68.1 (**Ours**)|      -         |
-| SimSiam | 100    |     256    | 67.6 (paper: 67.7) |90.7 (paper: 91.8)|
-| SwAV    | 200    |     256    | 73.0 (paper 72.7)  |    -           |
-| BYOL    | 200    |     256    | Comming Soon.      |      -         |
-| BarlowTwins| 300 |     256    | Comming Soon.      |      -         |
-| SCRL    | 200    |     256    | Comming Soon.      |      -         |
+#### STL 10
+| Methods | Training Schedule | Top 1  Acc |
+| ------- | ------ | ------------------ |
+| Res50   | 150e    | 86.1              |
 
-### 3D Unsupervised Models 
 
-| Methods       | Steps | Downstream task |
+### Self-Supervised Learning - Classification
+
+| Methods | Training Schedule | Batch Size | ImageNet Top 1 |
+| ------- | ------ | ---------- | ------------------ |
+| MoCo    | 200e    |     256    | 60.5 (paper: 60.5) | 
+| MoCov2  | 200e  |     256    | 67.6 (paper: 67.5) | 
+| SimCLR  | 200e    |     256    | 63.2 (paper: 61.9) |
+| **SimCLR*** | 200e    |     256    | 67.3 (**Ours**)|
+| **SiMo**    | 200e    |     256    | 68.1 (**Ours**)|
+| SimSiam | 100e    |     256    | 67.6 (paper: 67.7) |
+| SwAV    | 200e    |     256    | 73.0 (paper 72.7)  |
+| BYOL    | 200e    |     256    | Comming Soon.      |
+| BarlowTwins| 300e |     256    | Comming Soon.      |
+
+### Self-Supervised Learning - Detection (2D)
+
+| Methods | Training Schedule | Batch Size | ImageNet Top 1 |
+| SCRL    | 200    |     256    | Comming Soon.      | 
+| DetCon    | 200    |     256    | Comming Soon.      |
+
+### Self-Supervised Learning - 3D Scene Understanding
+
+| Methods       | Training Schedule | Downstream task |
 | ------------- | ----- | --------------- |
 | PointContrast | -     | Comming Soon.   |
 
