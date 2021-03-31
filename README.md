@@ -67,6 +67,7 @@ pods_train --num-gpus 8 MODEL.WEIGHTS /path/to/your/weights.pkl
 ### Self-Supervised Learning - Detection (2D)
 
 | Methods | Training Schedule | Batch Size | ImageNet Top 1 |
+| ------- | ------ | ---------- | ------------------ |
 | SCRL    | 200    |     256    | Comming Soon.      | 
 | DetCon    | 200    |     256    | Comming Soon.      |
 
