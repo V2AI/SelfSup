@@ -13,23 +13,20 @@ class EncoderWithProjection(nn.Module):
         self.proj_dim = cfg.MODEL.BYOL.PROJ_DIM
         self.out_dim = cfg.MODEL.BYOL.OUT_DIM
 
-        cfg.MODEL.RESNETS.NUM_CLASSES = self.out_dim
         self.encoder = cfg.build_backbone(
             cfg, input_shape=ShapeSpec(channels=len(cfg.MODEL.PIXEL_MEAN)))
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
 
-        dim_mlp = self.encoder.linear.weight.shape[1]
-        self.encoder.linear = nn.Sequential(
-            nn.Linear(dim_mlp, self.proj_dim),
+        self.projector = nn.Sequential(
+            nn.Linear(2048, self.proj_dim),
             nn.BatchNorm1d(self.proj_dim),
             nn.ReLU(),
-            nn.Linear(self.proj_dim, self.out_dim),
+            nn.Linear(self.proj_dim, self.out_dim, bias=False),
         )
 
-        self.out_feats = cfg.MODEL.RESNETS.OUT_FEATURES
-        assert "linear" in self.out_feats
-
     def forward(self, x):
-        return self.encoder(x)["linear"]
+        embedding = torch.flatten(self.avgpool(self.encoder(x)["res5"]), 1)
+        return self.projector(embedding)
 
 
 class BYOL(nn.Module):
@@ -43,24 +40,21 @@ class BYOL(nn.Module):
         self.online_network = EncoderWithProjection(cfg)
         self.target_network = EncoderWithProjection(cfg)
 
+        self.size_divisibility = self.online_network.encoder.size_divisibility
+
         self.predictor = nn.Sequential(
             nn.Linear(self.online_network.out_dim, self.online_network.proj_dim),
             nn.BatchNorm1d(self.online_network.proj_dim),
             nn.ReLU(),
-            nn.Linear(self.online_network.proj_dim, self.online_network.out_dim),
+            nn.Linear(self.online_network.proj_dim, self.online_network.out_dim, bias=False),
         )
 
-        for param_q, param_k in zip(
-                self.online_network.parameters(), self.target_network.parameters()):
+        for param_q, param_k in zip(self.online_network.parameters(), self.target_network.parameters()):
             param_k.data.copy_(param_q.data)  # initialize
             param_k.requires_grad = False  # not update by gradient
 
         self.register_parameter("step", nn.Parameter(torch.zeros(1), requires_grad=False))
         self.register_parameter("mom", nn.Parameter(torch.zeros(1), requires_grad=False))
-
-        pixel_mean = torch.Tensor(cfg.MODEL.PIXEL_MEAN).to(self.device).view(3, 1, 1)
-        pixel_std = torch.Tensor(cfg.MODEL.PIXEL_STD).to(self.device).view(3, 1, 1)
-        self.normalizer = lambda x: (x / 255.0 - pixel_mean) / pixel_std
 
         self.to(self.device)
 
@@ -72,8 +66,7 @@ class BYOL(nn.Module):
         return loss
 
     def update_mom(self):
-        mom = 1 - (1 - self.base_mom) * (
-            math.cos(math.pi * self.step.item() / self.total_steps) + 1) / 2.
+        mom = 1 - (1 - self.base_mom) * (math.cos(math.pi * self.step.item() / self.total_steps) + 1) / 2.
         self.step += 1
         return mom
 
@@ -84,8 +77,7 @@ class BYOL(nn.Module):
         """
         mom = self.update_mom()
         self.mom[0] = mom
-        for param_q, param_k in zip(
-                self.online_network.parameters(), self.target_network.parameters()):
+        for param_q, param_k in zip(self.online_network.parameters(), self.target_network.parameters()):
             param_k.data = param_k.data * mom + param_q.data * (1. - mom)
 
     def forward(self, batched_inputs):
@@ -99,8 +91,8 @@ class BYOL(nn.Module):
         q_inputs = [bi["q"] for bi in batched_inputs]
         k_inputs = [bi["k"] for bi in batched_inputs]
 
-        x_i = self.preprocess_image([bi["image"][0] for bi in q_inputs])
-        x_j = self.preprocess_image([bi["image"][0] for bi in k_inputs])
+        x_i = torch.stack([bi["image"][0] for bi in q_inputs]).to(self.device)
+        x_j = torch.stack([bi["image"][0] for bi in k_inputs]).to(self.device)
 
         online_out_1 = self.predictor(self.online_network(x_i))
         online_out_2 = self.predictor(self.online_network(x_j))
@@ -119,13 +111,3 @@ class BYOL(nn.Module):
             "loss_j": loss_j,
             "mom": self.mom,
         }
-
-    def preprocess_image(self, batched_inputs):
-        """
-        Normalize, pad and batch the input images.
-        """
-        # images = [x["image"].float().to(self.device) for x in batched_inputs]
-        images = [x.float().to(self.device) for x in batched_inputs]
-        images = torch.stack([self.normalizer(x) for x in images])
-
-        return images

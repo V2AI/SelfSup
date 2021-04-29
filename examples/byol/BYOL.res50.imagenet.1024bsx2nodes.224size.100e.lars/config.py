@@ -11,7 +11,7 @@ _config_dict = dict(
             DEPTH=50,
             NUM_CLASSES=1000,
             NORM="BN",
-            OUT_FEATURES=["linear"],
+            OUT_FEATURES=["res5"],
             STRIDE_IN_1X1=False,  # default true for msra models
             ZERO_INIT_RESIDUAL=True,  # default false, use true for all subsequent models
         ),
@@ -23,15 +23,15 @@ _config_dict = dict(
         ),
     ),
     DATASETS=dict(
-        TRAIN=("imagenet_train", ),
-        TEST=("imagenet_val", ),
+        TRAIN=("imagenet_nori_train", ),
+        TEST=("imagenet_nori_val", ),
     ),
     DATALOADER=dict(NUM_WORKERS=6, ),
     SOLVER=dict(
         LR_SCHEDULER=dict(
             NAME="WarmupCosineLR",
             MAX_EPOCH=100,
-            WARMUP_ITERS=10,
+            WARMUP_ITERS=5,
         ),
         OPTIMIZER=dict(
             NAME="LARS_SGD",
@@ -41,15 +41,15 @@ _config_dict = dict(
             # _LR_PRESETS = {40: 0.45, 100: 0.45, 300: 0.3, 1000: 0.2}
             # _WD_PRESETS = {40: 1e-6, 100: 1e-6, 300: 1e-6, 1000: 1.5e-6}
             # _EMA_PRESETS = {40: 0.97, 100: 0.99, 300: 0.99, 1000: 0.996}
-            BASE_LR=0.45,  # 0.3 for bs 256 => 4.8 for 4096
+            BASE_LR=0.45 * 4,  # 0.3 for bs 256 => 4.8 for 4096
             MOMENTUM=0.9,
             WEIGHT_DECAY=1e-6,
-            EXCLUDE_BIAS_AND_BN=True,
+            WD_EXCLUDE_BN_BIAS=True,
         ),
         CHECKPOINT_PERIOD=10,
-        IMS_PER_BATCH=256,
-        IMS_PER_DEVICE=32,  # 8 gpus per node
-        BATCH_SUBDIVISIONS=16,  # Simulate Batch Size 4096
+        IMS_PER_BATCH=1024,
+        IMS_PER_DEVICE=128,  # 8 gpus per node
+        BATCH_SUBDIVISIONS=1,  # Simulate Batch Size 4096
     ),
     INPUT=dict(
         AUG=dict(
@@ -65,6 +65,12 @@ _config_dict = dict(
                         ])),
                         ("RandomGaussianBlur", dict(sigma=[.1, 2.], p=1.0)),
                         ("RandomSolarization", dict(p=0.0)),
+                        ("Torch_Compose", transforms.Compose([
+                            transforms.ToTensor(),
+                            transforms.Normalize(
+                                mean=[0.485, 0.456, 0.406],
+                                std=[0.229, 0.224, 0.225])
+                        ])),
                     ], repeat_times=1)),
                 ],
                 k=[
@@ -78,14 +84,20 @@ _config_dict = dict(
                         ])),
                         ("RandomGaussianBlur", dict(sigma=[.1, 2.], p=0.1)),
                         ("RandomSolarization", dict(p=0.2)),
+                        ("Torch_Compose", transforms.Compose([
+                            transforms.ToTensor(),
+                            transforms.Normalize(
+                                mean=[0.485, 0.456, 0.406],
+                                std=[0.229, 0.224, 0.225])
+                        ])),
                     ], repeat_times=1)),
                 ],
             )
         )),
     TRAINER=dict(FP16=dict(ENABLED=False, OPTS=dict(OPT_LEVEL="O1"))),
     OUTPUT_DIR=osp.join(
-        '/data/Outputs/model_logs/cvpods_playground/self_supervised',
-        osp.split(osp.realpath(__file__))[0].split("self_supervised/")[-1]))
+        '/data/Outputs/model_logs/cvpods_playground',
+        osp.split(osp.realpath(__file__))[0].split("playground/")[-1]))
 
 
 class MoCoV2Config(BaseClassificationConfig):

@@ -61,7 +61,7 @@ pods_train --num-gpus 8 MODEL.WEIGHTS /path/to/your/weights.pkl
 | **SiMo**    | 200e    |     256    | 68.1 (**Ours**)|
 | SimSiam | 100e    |     256    | 67.6 (paper: 67.7) |
 | SwAV    | 200e    |     256    | 73.0 (paper 72.7)  |
-| BYOL    | 200e    |     256    | Comming Soon.      |
+| BYOL    | 100e    |     2048   | 69.7 (4096bs in SimSiam: 66.5 )      |
 | BarlowTwins| 300e |     256    | Comming Soon.      |
 
 ### Self-Supervised Learning - Detection (2D)
