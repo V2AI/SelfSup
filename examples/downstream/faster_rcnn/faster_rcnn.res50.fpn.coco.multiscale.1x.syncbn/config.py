@@ -55,6 +55,9 @@ _config_dict = dict(
     ),
     TEST=dict(
         EVAL_PEROID=10000,
+        PRECISE_BN=dict(
+            ENABLED=True,
+        ),
     ),
     OUTPUT_DIR=osp.join(
         '/data/Outputs/model_logs/cvpods_playground',
