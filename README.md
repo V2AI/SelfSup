@@ -52,7 +52,7 @@ pods_train --num-gpus 8 MODEL.WEIGHTS /path/to/your/weights.pkl
 
 ### Self-Supervised Learning - Classification
 
-> All results in the below table are reported on the ILSVRC2012 dataset.
+> All results in the below table are trained using resnet-50 and reported on the ILSVRC2012 dataset.
 
 | Methods       | Training Schedule | Batch Size | Our Acc@1 | Official Acc@1 |
 | -------       | ------            | ---------- | --------- | -------------- |
