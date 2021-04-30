@@ -6,7 +6,7 @@ _config_dict = dict(
     MODEL=dict(
         PIXEL_MEAN=[0.485 * 255, 0.456 * 255, 0.406 * 255],  # RGB
         PIXEL_STD=[0.229 * 255, 0.224 * 255, 0.225 * 255],
-        WEIGHTS="/path/to/your/pre_trained_weights.pkl",
+        WEIGHTS="/data/repos/cvpods/playground/self_supervised/classification/resnet/res50.scratch.imagenet.224size.100e/log/model_final_pretrain_weight.pkl",
         MASK_ON=True,
         BACKBONE=dict(
             FREEZE_AT=0,
@@ -41,6 +41,7 @@ _config_dict = dict(
             BASE_LR=0.02,
         ),
         IMS_PER_BATCH=16,
+        CHECKPOINT_PERIOD=30000,
     ),
     INPUT=dict(
         FORMAT="RGB",
@@ -58,14 +59,14 @@ _config_dict = dict(
         ),
     ),
     TEST=dict(
-        EVAL_PEROID=10000,
+        # EVAL_PEROID=10000,
         PRECISE_BN=dict(
             ENABLED=True,
         ),
     ),
     OUTPUT_DIR=osp.join(
         '/data/Outputs/model_logs/cvpods_playground',
-        osp.split(osp.realpath(__file__))[0].split("playground/")[-1]),
+        osp.split(osp.realpath(__file__))[0].split("SelfSup/")[-1]),
 )
 
 
