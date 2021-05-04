@@ -68,9 +68,11 @@ pods_train --num-gpus 8 MODEL.WEIGHTS /path/to/your/weights.pkl
 
 ### Self-Supervised Learning - Detection (2D)
 
-| Methods | Training Schedule | Batch Size | ImageNet Top 1 |
+> All the results reported below are trained on ILSVRC2012 and evaluated on MS COCO using Faster-RCNN-FPN and resnet-50.
+
+| Methods | Training Schedule | Batch Size | Box AP | 
 | ------- | ------ | ---------- | ------------------ |
-| SCRL    | 200    |     256    | Comming Soon.      | 
+| SCRL    | 200    |     4096    | 39.9 ( official: 40.5 with bs 8192)   | 
 | DetCon    | 200    |     256    | Comming Soon.      |
 
 ### Self-Supervised Learning - 3D Scene Understanding
