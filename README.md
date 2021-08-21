@@ -57,13 +57,13 @@ pods_train --num-gpus 8 MODEL.WEIGHTS /path/to/your/weights.pkl
 | Methods       | Training Schedule | Batch Size | Our Acc@1 | Official Acc@1 |
 | -------       | ------            | ---------- | --------- | -------------- |
 | MoCo          | 200e              |     256    | 60.5      | 60.5           |
-| MoCov2        | 200e              |     256    | 67.6      | 67.5           |
-| SimCLR        | 200e              |     256    | 63.2      | 61.9           |
-| **SimCLR***       | 200e              |     256    | 67.3      | **Ours**           |
-| **SiMo**          | 200e              |     256    | 68.1      | **Ours**           |
+| MoCov2        | 200e              |     256    | **67.6**      | 67.5           |
+| SimCLR        | 200e              |     256    | **63.2**      | 61.9           |
+| **SimCLR***       | 200e              |     256    | **67.3**      | **Ours**           |
+| **SiMo**          | 200e              |     256    | **68.1**      | **Ours**           |
 | SimSiam       | 100e              |     256    | 67.6      | 67.7           |
-| SwAV          | 200e              |     256    | 73.0      | 72.7           |
-| BYOL          | 100e              |     2048   | 69.8      | 66.5 (bs4096 from SimSiam paper) |
+| SwAV          | 200e              |     256    | **73.0**      | 72.7           |
+| BYOL          | 100e              |     2048   | **69.8**      | 66.5 (bs4096 from SimSiam paper) |
 | BarlowTwins   | 300e              |     1024   | Comming Soon| 71.7         |
 
 ### Self-Supervised Learning - Detection (2D)
